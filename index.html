@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Choose Your Own Adventure</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f4f4f4;
+            line-height: 1.6;
+        }
+        #story {
+            font-size: 1.5em;
+        }
+#chapterImage {
+    max-width: 100%;
+    height: 400px;
+    margin-bottom: 20px;
+    display: none; /* Initially hidden if no image */
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+}
+
+        .choices {
+            margin-top: 20px;
+        }
+        .choice {
+            display: block;
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #007BFF;
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        .choice:hover {
+            background-color: #0056b3;
+        }
+        #menu {
+            margin-top: 20px;
+            position: relative;
+        }
+        #menuButton {
+            padding: 10px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #menuContent {
+            display: none;
+            position: absolute;
+            top: 40px;
+            left: 0;
+            background-color: #f9f9f9;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            padding: 10px;
+            z-index: 1;
+        }
+        #menuContent button, #menuContent select {
+            margin: 5px 0;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            cursor: pointer;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+
+    
+
+    <div id="story"></div>
+    <img id="chapterImage" alt="Chapter Image">
+    <div class="choices" id="choices"></div>
+    
+    <div id="menu">
+        <button id="menuButton">Menu</button>
+        <div id="menuContent">
+            <button onclick="changeFontSize(1.0)">Increase Font Size</button>
+            <button onclick="changeFontSize(-1.0)">Decrease Font Size</button>
+            <select id="chapterSelect" onchange="goToChapter()">
+                <option value="" disabled selected>Go To Chapter</option>
+                <!-- Options will be populated dynamically -->
+            </select>
+        </div>
+    </div>
+
+    <script>
+        // Mapping chapters to corresponding markdown files
+        const chapters = {
+            start: {
+                file: "Kapitel1.md",
+                choices: [
+                    { text: "Följ kartan till den gamla skogen.", next: "Kapitel2" },
+                    { text: "Gå till Farfar och fråga om kartan.", next: "Kapitel3" }
+                ],
+                image: "images/Kapitel1.jpg"
+            },
+            Kapitel2: {
+                file: "Kapitel2.md",
+                choices: [
+                    { text: "Följ ljudet.", next: "Kapitel4" },
+                    { text: "Göm er bakom ett träd och vänta.", next: "Kapitel5" }
+                ]
+            },
+            Kapitel3: {
+                file: "Kapitel3.md",
+                choices: [
+                    { text: "Be Måns visa vägen.", next: "Kapitel6" },
+                    { text: "Gå direkt till skogen med kartan.", next: "Kapitel2" }
+                ]
+            },            
+            Kapitel4: {
+                file: "Kapitel4.md",
+                choices: [
+                    { text: "Gå in i stugan", next: "Kapitel7" },
+                    { text: "Gå runt stugan och undersök bakgården.", next: "Kapitel8" }
+                ]
+            },
+            Kapitel5: {
+                file: "Kapitel5.md",
+                choices: [
+                    { text: "Följ stigen till slutet.", next: "Kapitel9" },
+                    { text: "Stanna och undersök stenarna.", next: "Kapitel10" }
+                ]
+            },
+            Kapitel6: {
+                file: "Kapitel6.md",
+                choices: [
+                    { text: "Följ Måns in i tunneln.", next: "Kapitel11" },
+                    { text: "Stanna och vänta på Farfar.", next: "Kapitel3" }
+                ]
+            },
+            Kapitel7: {
+                file: "Kapitel7.md",
+                choices: [
+                    { text: "Utforska dalen.", next: "Kapitel12" },
+                    { text: "Leta efter en annan väg ut.", next: "Kapitel8" }
+                ]
+            },
+            Kapitel8: {
+                file: "Kapitel8.md",
+                choices: [
+                    { text: "Gå djupare in i grottan.", next: "Kapitel13" },
+                    { text: "Gå tillbaka till stugan.", next: "Kapitel7" }
+                ]
+            },
+            Kapitel9: {
+                file: "Kapitel9.md",
+                choices: [
+                    { text: "Gräv under trädet.", next: "Kapitel14" },
+                    { text: "Klättra upp i trädet för att få en bättre utsikt.", next: "Kapitel15" }
+                ]
+            },
+            Kapitel10: {
+                file: "Kapitel10.md",
+                choices: [
+                    { text: "Gå ner i dörren.", next: "Kapitel11" },
+                    { text: "Släpp stenen och backa", next: "Kapitel5" }
+                ]
+            },
+            Kapitel11: {
+                file: "Kapitel11.md",
+                choices: [
+                    { text: "Sätt er i båten och följ floden.", next: "Kapitel16" },
+                    { text: "Vänd om och gå tillbaka.", next: "Kapitel6" }
+                ]
+            },
+            Kapitel12: {
+                file: "Kapitel12.md",
+                choices: [
+                    { text: "Följ den hemliga vägen.", next: "Kapitel13" },
+                    { text: "Plocka en blomma.", next: "Kapitel17" }
+                ]
+            },
+            Kapitel13: {
+                file: "Kapitel13.md",
+                choices: [
+                    { text: "Tala med statyn.", next: "Kapitel18" },
+                    { text: "Försök smyga förbi statyn.", next: "Kapitel14" }
+                ]
+            },
+            Kapitel14: {
+                file: "Kapitel14.md",
+                choices: [
+                    { text: "Öppna kistan och undersök innehållet.", next: "Kapitel19" },
+                    { text: "Ta kistan tillbaka till Farfar.", next: "Kapitel20" }
+                ]
+            },
+            Kapitel15: {
+                file: "Kapitel15.md",
+                choices: [
+                    { text: "Prata med örnen.", next: "Kapitel21" },
+                    { text: "Ta det som glittrar.", next: "Kapitel22" }
+                ]
+            },
+            Kapitel16: {
+                file: "Kapitel16.md",
+                choices: [
+                    { text: "Undersök kristallen närmare.", next: "Kapitel20" },
+                    { text: "Vänd om och följ en annan väg.", next: "Kapitel19" }
+                ]
+            },
+            Kapitel17: {
+                file: "Kapitel17.md",
+                choices: [
+                    { text: "Följ stigen.", next: "Kapitel12" },
+                    { text: "Gå tillbaka till dalen.", next: "Kapitel7" }
+                ]
+            },
+            Kapitel18: {
+                file: "Kapitel18.md",
+                choices: [
+                    { text: "Svara rätt på gåtan och vinn skatten.", next: "Kapitel14" },
+                    { text: "Misslyckas med att lösa gåtan", next: "Kapitel19" }
+                ]
+            },
+            Kapitel19: {
+                file: "Kapitel19.md"
+            },
+            Kapitel20: {
+                file: "Kapitel20.md"
+            },
+            Kapitel21: {
+                file: "Kapitel21.md"
+            },
+            Kapitel22: {
+                file: "Kapitel22.md",
+                choices: [
+                    { text: "Återvänd stenen och be om förlåtelse", next: "Kapitel21" },
+                    { text: "Fortsätt med stenen och ta risken", next: "Kapitel23" }
+                ]
+            },
+            Kapitel23: {
+                file: "Kapitel23.md",
+                choices: [
+                    { text: "Återvänd till örnen och återlämna stenen.", next: "Kapitel21" }
+                ]
+            },
+        };
+
+        // Function to fetch and render a markdown file
+        async function fetchMarkdown(file) {
+            const response = await fetch(file);
+            const text = await response.text();
+            return text;
+        }
+
+        // Function to render the chapter
+// Function to render the chapter
+async function showChapter(chapterName) {
+    const chapter = chapters[chapterName];
+    const storyDiv = document.getElementById('story');
+    const choicesDiv = document.getElementById('choices');
+    const chapterImage = document.getElementById('chapterImage'); // Get the image element
+
+    // Load and render markdown file
+    const markdownText = await fetchMarkdown(chapter.file);
+    storyDiv.innerHTML = marked.parse(markdownText);
+
+    // Set and display the chapter image
+    if (chapter.image) {
+        chapterImage.src = chapter.image;
+        chapterImage.style.display = 'block';
+    } else {
+        chapterImage.style.display = 'none';
+    }
+
+    // Render choices
+    choicesDiv.innerHTML = '';
+    if (chapter.choices) {
+        chapter.choices.forEach(choice => {
+            const choiceElement = document.createElement('a');
+            choiceElement.className = 'choice';
+            choiceElement.innerText = choice.text;
+            choiceElement.href = '#';
+            choiceElement.onclick = () => showChapter(choice.next);
+            choicesDiv.appendChild(choiceElement);
+        });
+    }
+}
+
+
+        // Function to change font size
+        function changeFontSize(amount) {
+            const storyDiv = document.getElementById('story');
+            const currentSize = parseFloat(window.getComputedStyle(storyDiv, null).getPropertyValue('font-size'));
+            storyDiv.style.fontSize = (currentSize + amount) + 'px';
+        }
+
+        // Function to populate the "Go To Chapter" dropdown
+        function populateChapterSelect() {
+            const chapterSelect = document.getElementById('chapterSelect');
+            for (let chapterName in chapters) {
+                const option = document.createElement('option');
+                option.value = chapterName;
+                option.textContent = chapterName;
+                chapterSelect.appendChild(option);
+            }
+        }
+
+        // Function to go to a specific chapter
+        function goToChapter() {
+            const chapterSelect = document.getElementById('chapterSelect');
+            const selectedChapter = chapterSelect.value;
+            showChapter(selectedChapter);
+        }
+
+        // Event listener for the menu button
+        document.getElementById('menuButton').addEventListener('click', function() {
+            const menuContent = document.getElementById('menuContent');
+            menuContent.style.display = menuContent.style.display === 'block' ? 'none' : 'block';
+        });
+
+        // Start the story
+        showChapter('start');
+        populateChapterSelect();
+    </script>
+    <!-- Include Marked.js for Markdown parsing -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</body>
+</html>
